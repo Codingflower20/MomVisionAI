@@ -1,0 +1,4 @@
+{
+"mango":{"safe":true,"message":"Mangoes are safe and rich in vitamins."},
+"fish":{"safe":false,"message":"Raw fish is unsafe during pregnancy."}
+}

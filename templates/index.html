@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MomVision AI</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#e3f2fd',
+                            100: '#bbdefb',
+                            200: '#90caf9',
+                            300: '#64b5f6',
+                            400: '#42a5f5',
+                            500: '#2196f3',
+                            600: '#1e88e5',
+                            700: '#1976d2',
+                            800: '#1565c0',
+                            900: '#0d47a1',
+                        },
+                        secondary: {
+                            50: '#fce4ec',
+                            100: '#f8bbd0',
+                            200: '#f48fb1',
+                            300: '#f06292',
+                            400: '#ec407a',
+                            500: '#e91e63',
+                            600: '#d81b60',
+                            700: '#c2185b',
+                            800: '#ad1457',
+                            900: '#880e4f',
+                        },
+                        success: {
+                            50: '#e8f5e9',
+                            100: '#c8e6c9',
+                            200: '#a5d6a7',
+                            300: '#81c784',
+                            400: '#66bb6a',
+                            500: '#4caf50',
+                            600: '#43a047',
+                            700: '#388e3c',
+                            800: '#2e7d32',
+                            900: '#1b5e20',
+                        },
+                        error: {
+                            50: '#ffebee',
+                            100: '#ffcdd2',
+                            200: '#ef9a9a',
+                            300: '#e57373',
+                            400: '#ef5350',
+                            500: '#f44336',
+                            600: '#e53935',
+                            700: '#d32f2f',
+                            800: '#c62828',
+                            900: '#b71c1c',
+                        },
+                        warning: {
+                            50: '#fffde7',
+                            100: '#fff9c4',
+                            200: '#fff59d',
+                            300: '#fff176',
+                            400: '#ffee58',
+                            500: '#ffeb3b',
+                            600: '#fdd835',
+                            700: '#fbc02d',
+                            800: '#f9a825',
+                            900: '#f57f17',
+                        },
+                        info: {
+                            50: '#e0f7fa',
+                            100: '#b2ebf2',
+                            200: '#80deea',
+                            300: '#4dd0e1',
+                            400: '#26c6da',
+                            500: '#00bcd4',
+                            600: '#00acc1',
+                            700: '#0097a7',
+                            800: '#00838f',
+                            900: '#006064',
+                        },
+                        'neutral': {
+                            50: '#fafafa',
+                            100: '#f5f5f5',
+                            200: '#eeeeee',
+                            300: '#e0e0e0',
+                            400: '#bdbdbd',
+                            500: '#9e9e9e',
+                            600: '#757575',
+                            700: '#616161',
+                            800: '#424242',
+                            900: '#212121',
+                        },
+                    },
+                    fontFamily: {
+                        'roboto': ['Roboto', 'sans-serif'],
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        .collapsible-header {
+            @apply bg-neutral-200 hover:bg-neutral-300 text-neutral-700 font-semibold py-2 px-4 rounded cursor-pointer flex justify-between items-center;
+        }
+        .collapsible-content {
+            @apply bg-neutral-100 border border-neutral-300 rounded-b p-4 hidden;
+        }
+        .collapsible-header.active + .collapsible-content {
+            @apply block;
+        }
+        #uploadedImageContainer {
+            @apply mb-4 border rounded;
+        }
+        #uploadedImage {
+            @apply block max-w-full rounded;
+            max-height: 200px; /* Adjust as needed */
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body class="font-roboto bg-neutral-100 p-6">
+    <div class="container max-w-md mx-auto bg-white rounded shadow-md p-8">
+        <h1 class="text-3xl font-semibold text-primary-600 text-center mb-4">MomVision AI</h1>
+        <p class="text-neutral-700 mb-4 text-center">Upload an image of food to check its safety.</p>
+        <div class="mb-4">
+            <input type="file" id="imageUpload" accept="image/*" class="shadow appearance-none border rounded w-full py-2 px-3 text-neutral-700 leading-tight focus:outline-none focus:shadow-outline">
+        </div>
+        <div id="uploadedImageContainer" class="hidden">
+            <img id="uploadedImage" src="#" alt="Uploaded Image">
+        </div>
+        <button onclick="uploadImage()" class="bg-success-500 hover:bg-success-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Analyze Image</button>
+        <div id="uploadStatus" class="mt-4 text-neutral-600 italic"></div>
+        <div id="analysisResults" class="mt-6">
+            </div>
+    </div>
+
+
+    <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-storage-compat.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyC7wlf6Re-4rDXMTixy4pQaZSAP87g88BA",
+            authDomain: "momvisionai-1.firebaseapp.com",
+            projectId: "momvisionai-1",
+            storageBucket: "momvisionai-1.firebasestorage.app",
+            messagingSenderId: "259616011718",
+            appId: "1:259616011718:web:937531f6e5ed2c26c46ec7",
+            measurementId: "G-JLZ0ZX7G6E"
+        };
+        const app = firebase.initializeApp(firebaseConfig);
+        const storage = firebase.storage().ref();
+
+
+        const imageUpload = document.getElementById('imageUpload');
+        const uploadedImageContainer = document.getElementById('uploadedImageContainer');
+        const uploadedImage = document.getElementById('uploadedImage');
+
+
+        imageUpload.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    uploadedImage.src = e.target.result;
+                    uploadedImageContainer.classList.remove('hidden');
+                }
+                reader.readAsDataURL(file);
+            } else {
+                uploadedImage.src = '#';
+                uploadedImageContainer.classList.add('hidden');
+            }
+        });
+
+
+        async function uploadImage() {
+            const fileInput = document.getElementById('imageUpload');
+            const file = fileInput.files[0];
+            const uploadStatus = document.getElementById('uploadStatus');
+            const analysisResults = document.getElementById('analysisResults');
+
+
+            if (!file) {
+                uploadStatus.innerText = 'Please select an image.';
+                analysisResults.innerHTML = '<p class="text-error-600 font-semibold"><i class="material-icons align-middle mr-1">error</i> No food recognized in the uploaded image.</p>';
+                return;
+            }
+
+
+            uploadStatus.innerText = 'Uploading image...';
+            analysisResults.innerHTML = ''; // Clear previous results
+
+
+            try {
+                const storageRef = storage.child(`images/${file.name}_${Date.now()}`);
+                const uploadTask = storageRef.put(file);
+
+
+                uploadTask.on('state_changed',
+                    (snapshot) => {
+                        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                        uploadStatus.innerText = `Uploading ${progress.toFixed(2)}%`;
+                    },
+                    (error) => {
+                        uploadStatus.innerText = `Upload failed: ${error.message}`;
+                        console.error("Firebase Upload Error:", error);
+                    },
+                    async () => {
+                        // Upload complete, get download URL
+                        const downloadURL = await storageRef.getDownloadURL();
+                        uploadStatus.innerText = 'Upload complete. Analyzing image...';
+                        await analyzeImage(downloadURL);
+                    }
+                );
+            } catch (error) {
+                uploadStatus.innerText = `Error during upload: ${error.message}`;
+                console.error("Upload Catch Error:", error);
+            }
+        }
+
+
+        async function analyzeImage(imageURL) {
+            const analysisResults = document.getElementById('analysisResults');
+            try {
+                const response = await fetch('/analyze_uploaded_image', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ image_url: imageURL })
+                });
+
+
+                if (response.ok) {
+                    const data = await response.json();
+                    displayAnalysisResults(data);
+                } else {
+                    analysisResults.innerText = `Analysis failed: ${response.statusText}`;
+                    console.error("Analysis API Error:", response);
+                }
+            } catch (error) {
+                analysisResults.innerText = `Error during analysis request: ${error.message}`;
+                console.error("Analysis Fetch Error:", error);
+            }
+        }
+
+
+        function displayAnalysisResults(data) {
+            const analysisResultsDiv = document.getElementById('analysisResults');
+            analysisResultsDiv.innerHTML = ''; // Clear previous results
+
+
+            if (data.food) {
+                analysisResultsDiv.innerHTML += `<p class="font-semibold text-primary-600 mb-1">Identified Food: <span class="font-normal text-neutral-700">${data.food}</span></p>`;
+                if (data.safety_assessment) {
+                    analysisResultsDiv.innerHTML += `<p class="text-warning-700 mb-2"><i class="material-icons align-middle mr-1">warning</i> Safety Assessment: ${data.safety_assessment}</p>`;
+                }
+                if (data.major_vitamins) {
+                    analysisResultsDiv.innerHTML += `<p class="text-info-700 mb-2">Major Vitamins: ${data.major_vitamins}</p>`;
+                }
+
+
+                analysisResultsDiv.innerHTML += `
+                    <div>
+                        <button type="button" class="collapsible-header" onclick="toggleSection('english-details')">
+                            More Details (English)
+                            <i class="material-icons">expand_more</i>
+                        </button>
+                        <div id="english-details" class="collapsible-content hidden">
+                            ${data.details_en ? `<p class="text-neutral-700">${data.details_en.replace('\\n', '<br>')}</p>` : ''}
+                            ${data.english_audio_url ? `<div class="mt-2"><audio controls><source src="${data.english_audio_url}" type="audio/mpeg">Your browser does not support the audio element. Listen in English.</audio></div>` : ''}
+                        </div>
+                    </div>
+                `;
+
+
+                analysisResultsDiv.innerHTML += `
+                    <div>
+                        <button type="button" class="collapsible-header" onclick="toggleSection('hindi-details')">
+                            अतिरिक्त जानकारी (Hindi)
+                            <i class="material-icons">expand_more</i>
+                        </button>
+                        <div id="hindi-details" class="collapsible-content hidden">
+                            ${data.details_hi ? `<p class="text-neutral-700">${data.details_hi.replace('\\n', '<br>')}</p>` : ''}
+                            ${data.hindi_audio_url ? `<div class="mt-2"><audio controls><source src="${data.hindi_audio_url}" type="audio/mpeg">Your browser does not support the audio element. हिंदी में सुनें.</audio></div>` : ''}
+                        </div>
+                    </div>
+                `;
+
+
+            } else {
+                analysisResultsDiv.innerHTML = `<p class="text-error-600 font-semibold"><i class="material-icons align-middle mr-1">error</i> No food recognized in the uploaded image.</p>`;
+                if (data.english_audio_url || data.hindi_audio_url) {
+                    analysisResultsDiv.innerHTML += `<div class="mt-4">`;
+                    if (data.english_audio_url) {
+                        analysisResultsDiv.innerHTML += `<div class="mb-2"><audio controls><source src="${data.english_audio_url}" type="audio/mpeg">Your browser does not support the audio element. Listen in English.</audio></div>`;
+                    }
+                    if (data.hindi_audio_url) {
+                        analysisResultsDiv.innerHTML += `<div><audio controls><source src="${data.hindi_audio_url}" type="audio/mpeg">Your browser does not support the audio element. हिंदी में सुनें.</audio></div>`;
+                    }
+                    analysisResultsDiv.innerHTML += `</div>`;
+                }
+            }
+        }
+
+
+        function toggleSection(id) {
+            const header = document.querySelector(`.collapsible-header[onclick="toggleSection('${id}')"]`);
+            const content = document.getElementById(id);
+            if (content) {
+                content.classList.toggle('hidden');
+                header.classList.toggle('active');
+                const icon = header.querySelector('.material-icons');
+                if (icon) {
+                    icon.textContent = content.classList.contains('hidden') ? 'expand_more' : 'expand_less';
+                }
+            }
+        }
+    </script>
+</body>
+</html>
+

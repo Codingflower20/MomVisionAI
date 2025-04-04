@@ -1,0 +1,12 @@
+specVersion: "v1"
+serviceId: "momvisionai"
+location: "us-central1"
+schema:
+  source: "./schema"
+  datasource:
+    postgresql:
+      database: "fdcdb"
+      cloudSql:
+        instanceId: "momvisionai-fdc"
+      # schemaValidation: "COMPATIBLE"
+connectorDirs: ["./connector"]
